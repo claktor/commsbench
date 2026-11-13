@@ -6,14 +6,14 @@ A results pull request adds one folder under `runs/` and changes nothing else. T
 
 ```sh
 export OPENROUTER_API_KEY=sk-or-...
-./emojibench.py models deepseek                     # search model ids and prices
-./emojibench.py hosts deepseek/deepseek-v4-pro      # who serves it, at what precision
-./emojibench.py bench -m openrouter:deepseek/deepseek-v4-pro@<host>
-./emojibench.py check                               # what CI will run
-./emojibench.py report --bench                      # the leaderboard with your model in it
+./commsbench.py models deepseek                     # search model ids and prices
+./commsbench.py hosts deepseek/deepseek-v4-pro      # who serves it, at what precision
+./commsbench.py bench -m openrouter:deepseek/deepseek-v4-pro@<host>
+./commsbench.py check                               # what CI will run
+./commsbench.py report --bench                      # the leaderboard with your model in it
 ```
 
-`./sandbox.sh` takes the same arguments as `./emojibench.py` and runs it in a Docker container that sees only the repo folder and your key.
+`./sandbox.sh` takes the same arguments as `./commsbench.py` and runs it in a Docker container that sees only the repo folder and your key.
 
 `bench` climbs the ladder on all 20 articles in `articles/set1.json`, 4 articles at a time (`-j` changes that). It writes a new folder in `runs/` holding every game as JSON plus a readable transcript (`.md`).
 
@@ -29,14 +29,14 @@ export OPENROUTER_API_KEY=sk-or-...
 A run can stop partway if credits run out, you hit a rate limit, or the model refuses. Every finished game is already saved, and a rung that hit an error is saved as `error-NN-rRR.json`. Resume with the same model:
 
 ```sh
-./emojibench.py bench -m openrouter:<id> --continue runs/<the run's folder>
+./commsbench.py bench -m openrouter:<id> --continue runs/<the run's folder>
 ```
 
 Saved rungs aren't played again. If one rung keeps failing with the same error, such as a safety refusal, open the pull request anyway and say so. The maintainers will decide how to score it.
 
 ## What CI checks
 
-`./emojibench.py check` re-derives everything it can from the saved games:
+`./commsbench.py check` re-derives everything it can from the saved games:
 
 - Every article in the set was played, and its text is unchanged.
 - Every message the guesser saw is exactly what the filter makes of the explainer's text, with that rung's banned emoji removed.
