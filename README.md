@@ -1,4 +1,4 @@
-# EMOJIBENCH
+# COMMSBENCH
 
 One copy of a model gets a random Wikipedia article and may only reply in emoji. A second copy of the same model has to name the article. Fewer turns is better.
 
@@ -103,7 +103,7 @@ Fable 5.1 explaining to itself, solved in 1 turn:
 </details>
 <!-- /generated:puzzles -->
 
-## Leaderboard: EMOJIBENCH @ $1
+## Leaderboard: COMMSBENCH @ $1
 
 The top models name most random articles in one or two turns, so the benchmark is a ladder on each article:
 
@@ -113,7 +113,7 @@ The top models name most random articles in one or two turns, so the benchmark i
 4. Each model has $1 per article at its API list price. The climb ends when a rung fails or the money runs out.
 
 <!-- generated:board -->
-|  | Model | EMOJIBENCH | Won–drawn–lost | Rungs per article | Minutes per article |
+|  | Model | COMMSBENCH | Won–drawn–lost | Rungs per article | Minutes per article |
 |---:|---|---:|---:|---:|---:|
 | 1 | [GPT-6.1 Sol](runs/20261029-101903-openrouter-openai-gpt-6.1-sol-openai-ladder) | **1869** | 150–7–3 | 8.20 | 10 |
 | 2 | [GPT-6.1 Terra](runs/20261029-101904-openrouter-openai-gpt-6.1-terra-openai-ladder) | **1659** | 128–10–22 | 6.35 | 7 |
@@ -126,7 +126,7 @@ The top models name most random articles in one or two turns, so the benchmark i
 | 9 | [MiniMax M3](runs/20261028-164756-openrouter-minimax-minimax-m3-minimax-ladder) | **806** | 0–47–113 | 0.00 | 6 |
 <!-- /generated:board -->
 
-EMOJIBENCH is an Elo rating with Sonnet 5.5 fixed at 1000. On each article, the model that climbed more rungs wins the head-to-head, and equal rungs is a draw. Comparing within an article means hard articles don't drag anyone's score down. A 200-point gap means winning about 3 articles in 4. Every new model refits all the ratings except Sonnet's, so the others can move a little. Each model's name links to its games.
+COMMSBENCH is an Elo rating with Sonnet 5.5 fixed at 1000. On each article, the model that climbed more rungs wins the head-to-head, and equal rungs is a draw. Comparing within an article means hard articles don't drag anyone's score down. A 200-point gap means winning about 3 articles in 4. Every new model refits all the ratings except Sonnet's, so the others can move a little. Each model's name links to its games.
 
 Minutes per article is how long a model took to play its ladder on one article, rung after rung. It isn't part of the score, since it depends on the host as much as the model, but it shows what a score costs in waiting.
 
@@ -220,10 +220,10 @@ You need Python 3.11 or newer (nothing to install), an [OpenRouter key](https://
 
    ```sh
    export OPENROUTER_API_KEY=sk-or-...
-   ./emojibench.py models gemini                      # find the model id and its price
-   ./emojibench.py hosts google/gemini-4-argon        # who serves it, at what precision
-   ./emojibench.py bench -m openrouter:google/gemini-4-argon@<host>
-   ./emojibench.py check                              # the checks CI runs on your pull request
+   ./commsbench.py models gemini                      # find the model id and its price
+   ./commsbench.py hosts google/gemini-4-argon        # who serves it, at what precision
+   ./commsbench.py bench -m openrouter:google/gemini-4-argon@<host>
+   ./commsbench.py check                              # the checks CI runs on your pull request
    ```
 
 3. Commit the new folder in `runs/` and open a pull request.
@@ -367,9 +367,9 @@ The explainer writes its message inside `<msg>` tags and can think outside them;
 
 ## Running it
 
-`./emojibench.py` is one Python file using only the standard library.
+`./commsbench.py` is one Python file using only the standard library.
 
-- `bench -m <model>` plays EMOJIBENCH @ $1. A model is `openrouter:<id>` for anything on OpenRouter, or `opus`, `sonnet`, `haiku` and `fable` for Claude models run through [Claude Code](https://claude.com/claude-code), which is how the Claude results here were played.
+- `bench -m <model>` plays COMMSBENCH @ $1. A model is `openrouter:<id>` for anything on OpenRouter, or `opus`, `sonnet`, `haiku` and `fable` for Claude models run through [Claude Code](https://claude.com/claude-code), which is how the Claude results here were played.
 - `report` prints the leaderboard and every ladder from `runs/`. `--budget 2` re-scores the same games with $2 per article, and `--ladder-break 3` with a 3-turn limit. Neither plays new games.
 - `run -m <model>` plays normal games only: no ladder, 30 turns per article. `-e` and `-g` pair two different models as explainer and guesser.
 - `openrouter:<id>@<host>` sends every call to one host, such as `openrouter:z-ai/glm-5.3@baidu/fp8`. Without a host, OpenRouter spreads calls over every host serving the model, cheap compressed (fp4) ones included. `hosts <id>` lists the hosts with their precision and prices.

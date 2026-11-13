@@ -12,7 +12,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 sys.path.insert(0, str(ROOT))
-import emojibench as eb  # noqa: E402
+import commsbench as eb  # noqa: E402
 
 NAMES = {"claude-fable-5-1": "Fable 5.1", "claude-opus-5-5": "Opus 5.5",
          "claude-sonnet-5-5": "Sonnet 5.5", "claude-haiku-5-5": "Haiku 5.5"}
@@ -156,7 +156,7 @@ def collect():
     msg = s["error"]["message"]
     safety = {"message": msg[msg.index("API Error: ") + len("API Error: "):].split(" (https")[0]}
 
-    # EMOJIBENCH @ $1: the ladder leaderboard, straight from the same scoring as `report`
+    # COMMSBENCH @ $1: the ladder leaderboard, straight from the same scoring as `report`
     lad = eb.ladder_data([ROOT / "runs"])
     grid, runs = {}, {}
     for a in lad["articles"]:
@@ -286,7 +286,7 @@ def readme_blocks(data):
     blocks["puzzles"] = "\n".join(items)
 
     blocks["board"] = table(
-        ["", "Model", "EMOJIBENCH", "Won–drawn–lost", "Rungs per article", "Minutes per article"],
+        ["", "Model", "COMMSBENCH", "Won–drawn–lost", "Rungs per article", "Minutes per article"],
         [[k, f"[{md(name(b['model']))}]({b['run']})", f"**{b['elo']:.0f}**", "–".join(map(str, b["wdl"])),
           f"{b['rungs']:.2f}", f"{b['minutes']:.0f}"] for k, b in enumerate(L["board"], 1)],
         "rlrrrr")

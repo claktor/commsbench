@@ -22,10 +22,10 @@ jobs:
           python-version: "3.12"
 
       - name: Check every run
-        run: ./emojibench.py check
+        run: ./commsbench.py check
 
       - name: Leaderboard
-        run: ./emojibench.py report --bench >> "$GITHUB_STEP_SUMMARY"
+        run: ./commsbench.py report --bench >> "$GITHUB_STEP_SUMMARY"
 
       - name: Update the README
         if: github.event_name != 'pull_request'

@@ -3,5 +3,5 @@
 **Model:** `openrouter:...`
 **Run folder:** `runs/...`
 
-- [ ] `./emojibench.py check` passes
+- [ ] `./commsbench.py check` passes
 - [ ] This pull request only adds a folder under `runs/`

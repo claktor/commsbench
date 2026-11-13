@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EMOJIBENCH: can a model explain a random Wikipedia article to itself using only emojis?
+"""COMMSBENCH: can a model explain a random Wikipedia article to itself using only emojis?
 
 An EXPLAINER instance gets a random Wikipedia article and may only send emojis
 (enforced by a filter, not just the prompt). A GUESSER instance of the same model
@@ -13,13 +13,13 @@ A model is picked by name, and the name picks the backend:
   openrouter:<id>@<host>              the same, with every call sent to one host, e.g. @baidu/fp8
 
 Usage:
-  ./emojibench.py bench -m openrouter:<id>             # EMOJIBENCH @ $1 on the 20-article set
-  ./emojibench.py report                               # leaderboard over runs/
-  ./emojibench.py check                                # validate the runs, as CI does for a PR
-  ./emojibench.py models qwen                          # search OpenRouter model ids and prices
-  ./emojibench.py hosts z-ai/glm-5.3                   # who serves a model, at what precision
-  ./emojibench.py run -m sonnet                        # normal games only (no ladder)
-  ./emojibench.py fetch -n 20 -o articles/set2.json    # freeze a new set of random articles
+  ./commsbench.py bench -m openrouter:<id>             # COMMSBENCH @ $1 on the 20-article set
+  ./commsbench.py report                               # leaderboard over runs/
+  ./commsbench.py check                                # validate the runs, as CI does for a PR
+  ./commsbench.py models qwen                          # search OpenRouter model ids and prices
+  ./commsbench.py hosts z-ai/glm-5.3                   # who serves a model, at what precision
+  ./commsbench.py run -m sonnet                        # normal games only (no ladder)
+  ./commsbench.py fetch -n 20 -o articles/set2.json    # freeze a new set of random articles
 """
 
 import argparse
@@ -51,7 +51,7 @@ RUNS_DIR = ROOT / "runs"
 CLAUDE = shutil.which("claude") or "claude"
 # Any OpenAI-compatible endpoint works here, e.g. a local vLLM server; costs then come from usage.cost if it sends one.
 OPENROUTER_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1").rstrip("/")
-USER_AGENT = "emojibench/0.1"
+USER_AGENT = "commsbench/0.1"
 
 MAX_TURNS = 30
 JUDGE_MODEL = "haiku"
@@ -264,7 +264,7 @@ def openrouter(model, messages, effort=None, host=None):
     req = urllib.request.Request(
         f"{OPENROUTER_URL}/chat/completions", data=json.dumps(body).encode(),
         headers={"Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY', '')}",
-                 "Content-Type": "application/json", "X-Title": "EMOJIBENCH", "User-Agent": USER_AGENT})
+                 "Content-Type": "application/json", "X-Title": "COMMSBENCH", "User-Agent": USER_AGENT})
     last_err = None
     for attempt in range(4):
         started = time.time()
@@ -350,7 +350,7 @@ def check_model(spec):
     if model not in ids:
         near = difflib.get_close_matches(model, ids, n=5, cutoff=0.5)
         sys.exit(f"{model!r} isn't an OpenRouter model id." + (f" Did you mean: {', '.join(near)}?" if near else "")
-                 + " See ./emojibench.py models <search>")
+                 + " See ./commsbench.py models <search>")
     if host(spec):
         try:
             tags = {e["tag"] for e in openrouter_hosts(model)}
@@ -358,7 +358,7 @@ def check_model(spec):
             log(f"couldn't fetch the hosts of {model} to check {host(spec)!r} ({e}); trying it anyway")
             return
         if host(spec) not in tags:
-            sys.exit(f"{host(spec)!r} doesn't serve {model}. See ./emojibench.py hosts {model}")
+            sys.exit(f"{host(spec)!r} doesn't serve {model}. See ./commsbench.py hosts {model}")
 
 
 class Chat:
@@ -403,6 +403,7 @@ def ask(spec, system, prompt):
 # Game
 # ---------------------------------------------------------------------------
 
+# Both templates keep the benchmark's first name: their text is hashed into HARNESS with every saved run.
 EXPLAINER_TEMPLATE = """You are playing EMOJIBENCH, a cooperative communication game.
 
 You are the EXPLAINER. Your partner, the GUESSER, is {partner}. You know a secret Wikipedia article, picked with Special:Random, so it is probably obscure. Your goal: get the guesser to name that exact article in as few turns as possible.
@@ -884,7 +885,7 @@ def entry(g):
 
 
 def ladder_data(paths, break_turns=None, max_rounds=None, budget=BUDGET):
-    """EMOJIBENCH @ $budget: rungs climbed per article before failing a rung or running out of money,
+    """COMMSBENCH @ $budget: rungs climbed per article before failing a rung or running out of money,
     turned into Elo by per-article head-to-heads. break_turns / max_rounds re-read a run with stricter
     limits for free (the ladder is identical up to the first rung that breaks under them).
     Returns None if there are no ladder games."""
@@ -953,8 +954,8 @@ def ladder_report(paths, break_turns=None, max_rounds=None, budget=BUDGET):
     d = ladder_data(paths, break_turns, max_rounds, budget)
     if d is None:
         return
-    print("\n## EMOJIBENCH\n")
-    print(f"| Rank | Model | **EMOJIBENCH** (Elo) | Head-to-heads W–D–L | Rungs @ ${budget:g} | $ per article "
+    print("\n## COMMSBENCH\n")
+    print(f"| Rank | Model | **COMMSBENCH** (Elo) | Head-to-heads W–D–L | Rungs @ ${budget:g} | $ per article "
           f"| Minutes per article | Articles |")
     print("|---:|---|---:|---:|---:|---:|---:|---:|")
     for rank, b in enumerate(d["board"], 1):
@@ -962,7 +963,7 @@ def ladder_report(paths, break_turns=None, max_rounds=None, budget=BUDGET):
         inc = f" ({b['incomplete']} cut short)" if b["incomplete"] else ""
         print(f"| {rank} | {b['model']} | **{b['elo']:.0f}** | {w}–{dr}–{l} | {b['rungs']:.2f} "
               f"| {b['spend']:.2f} | {b['minutes']:.0f} | {b['articles']}{inc} |")
-    print(f"\nEMOJIBENCH is an Elo rating ({ELO_ANCHOR[0]} = {ELO_ANCHOR[1]}). On every article two models both "
+    print(f"\nCOMMSBENCH is an Elo rating ({ELO_ANCHOR[0]} = {ELO_ANCHOR[1]}). On every article two models both "
           f"played, the one that climbs more rungs with ${budget:g} to spend wins; equal rungs is a draw. Rung 1 is "
           f"the normal game; each next rung replays the article with every emoji used so far banned. A rung counts "
           f"if it is solved within {d['break_turns']} turns before the money runs out. Costs are API list-price "
@@ -1127,7 +1128,7 @@ def check_run(d, articles):
     cut = [a["title"] for a in lad["articles"] if a["incomplete"]] if lad else []
     if pending or cut:
         problems.append(f"unfinished ({len(pending)} rungs stopped by errors, {len(cut)} ladders still climbing with "
-                        f"money left): resume with ./emojibench.py bench -m <model> --continue {d}")
+                        f"money left): resume with ./commsbench.py bench -m <model> --continue {d}")
     return models, rows, problems, warnings
 
 
@@ -1169,7 +1170,7 @@ def cmd_models(args):
     print("| Model | $ / M input | $ / M output |\n|---|---:|---:|")
     for mid, i, o in rows:
         print(f"| openrouter:{mid} | {i:.2f} | {o:.2f} |")
-    log(f"{len(rows)} models. Run one with: ./emojibench.py bench -m openrouter:<id>")
+    log(f"{len(rows)} models. Run one with: ./commsbench.py bench -m openrouter:<id>")
 
 
 def cmd_hosts(args):
@@ -1179,7 +1180,7 @@ def cmd_hosts(args):
         p = e["pricing"]
         print(f"| {e['tag']} | {e.get('quantization') or 'unknown'} | {float(p['prompt']) * 1e6:.2f} "
               f"| {float(p['completion']) * 1e6:.2f} | {'yes' if e.get('status', 0) == 0 else 'no'} |")
-    log(f"Pin one with: ./emojibench.py bench -m openrouter:{model}@<host>")
+    log(f"Pin one with: ./commsbench.py bench -m openrouter:{model}@<host>")
 
 
 JUDGE_HELP = (f"model that judges guesses (default: Claude Haiku 5.5, as {JUDGE_MODEL} through Claude Code if "
@@ -1212,7 +1213,7 @@ def main():
     r.set_defaults(fn=cmd_run)
 
     lad = sub.add_parser("bench", aliases=["ladder"],
-                         help="EMOJIBENCH: the ban-and-replay ladder on every article, $1 per article")
+                         help="COMMSBENCH: the ban-and-replay ladder on every article, $1 per article")
     lad.add_argument("-m", "--model", required=True, help="haiku | sonnet | opus | fable | openrouter:<id>")
     lad.add_argument("-a", "--articles", default="articles/set1.json")
     lad.add_argument("--only", help="comma-separated article numbers (1-based)")
@@ -1231,10 +1232,10 @@ def main():
     rep = sub.add_parser("report", help="leaderboard over run directories")
     rep.add_argument("runs", nargs="*", help="run dirs (default: all of runs/)")
     rep.add_argument("--json", action="store_true", help="print per-pair stats as JSON")
-    rep.add_argument("--bench", action="store_true", help="only the EMOJIBENCH leaderboard, not the normal games")
+    rep.add_argument("--bench", action="store_true", help="only the COMMSBENCH leaderboard, not the normal games")
     rep.add_argument("--ladder-break", type=int, metavar="N",
                      help="re-score ladders with a stricter turn limit (free: no new games)")
-    rep.add_argument("--budget", type=float, default=BUDGET, help="EMOJIBENCH budget per article in $ (default 1)")
+    rep.add_argument("--budget", type=float, default=BUDGET, help="COMMSBENCH budget per article in $ (default 1)")
     rep.add_argument("--ladder-rounds", type=int, metavar="N",
                      help="re-score ladders with a lower round cap (free: no new games)")
     rep.set_defaults(fn=cmd_report)
